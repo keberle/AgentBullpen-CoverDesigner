@@ -15,7 +15,7 @@ Only the cover designer needs a model; the book list runs without configuration.
    - **Never ask them to paste the key to you.**
    - **Never put a key on a command line as a literal.**
    - **Never print a key**, and don't echo the variable to check it.
-5. Images are optional and OpenAI only: fill in the `Llm:Image` block in the same file, and set `Parameters:image-api-key` the same way as in step 4.
+5. Images are optional, on OpenAI or OpenRouter: fill in the `Llm:Image` block in the same file, and set `Parameters:image-api-key` the same way as in step 4.
 6. Run `aspire run`. The web app's URL is on the Aspire dashboard, under the `web` resource. If the app was already running, stop it with `aspire stop` first.
 7. Check it with the `availability` query, a POST to `/graphql` on the web app's URL:
    ```

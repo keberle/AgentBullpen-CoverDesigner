@@ -14,7 +14,7 @@ Four model calls make a cover: the intent call, the designer's chat, the concept
 | The concept call | `LLM_CONCEPT_MODEL`, else `LLM_MODEL` | `GATEWAY_CONCEPT_MODEL` |
 | The image | `IMAGE_MODEL` | `GATEWAY_IMAGE_MODEL` |
 
-Chat and image providers are independent: Anthropic has no image model, so a mix is normal.
+Chat and image providers are independent: Anthropic has no image model, so a mix is normal. The image call speaks OpenAI's Images API or OpenRouter's (`POST …/images`); behind the site it goes through OpenRouter like every other call.
 
 ## What a turn costs
 

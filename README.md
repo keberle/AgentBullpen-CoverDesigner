@@ -40,7 +40,7 @@ cd web && npm ci && npm test && npm run build
 
 ## More
 
-- **Images:** painting needs an OpenAI image model and its own key (the `Llm:Image` block and `Parameters:image-api-key`); without them the designer still talks. [Configuration](docs/guide/configuration.md).
+- **Images:** painting needs an image model on OpenAI or OpenRouter and its own key (the `Llm:Image` block and `Parameters:image-api-key`); without them the designer still talks. [Configuration](docs/guide/configuration.md).
 - **Run behind a gateway:** the same build runs behind the [AgentBullpen.AI](https://agentbullpen.ai) site once `GATEWAY_SIGNING_KEY` and `VITE_API_BASE_URL` are set; standalone is the default. [Behind a gateway](docs/guide/gateway.md).
 - **Deploying:** The api has a `Dockerfile` (`api/`); the web app is a static Vite build (`web/dist`). Host them however you like; no deployment pipeline ships with the repo.
 

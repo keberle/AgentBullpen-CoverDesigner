@@ -1,5 +1,5 @@
 {
-  "about": "Provider error responses, as recorded and as OpenAI documents them. Shapes only: keys, accounts and amounts are made up. `kind`/`reason` are what provider_failures.classify must return, by the site's classifier rules; `image` = the image call. `source` says where each came from.",
+  "about": "Provider error responses, as recorded and as OpenAI and OpenRouter document them. Shapes only: keys, accounts and amounts are made up. `kind`/`reason` are what provider_failures.classify must return, by the site's classifier rules; `image` = the image call. `source` says where each came from.",
   "cases": [
     {
       "name": "openrouter-402-credits",
@@ -502,6 +502,103 @@
       },
       "kind": "rejected",
       "reason": null
+    },
+    {
+      "name": "openrouter-image-400-bad-parameter",
+      "source": "openrouter.ai/docs/api/reference/errors-and-debugging: every 4xx is {error: {code, message, metadata?}}, code = the HTTP status. Message made up.",
+      "provider": "openrouter",
+      "status": 400,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": 400,
+          "message": "size conflicts with aspect_ratio."
+        }
+      },
+      "kind": "rejected",
+      "reason": null,
+      "image": true
+    },
+    {
+      "name": "openrouter-image-402-credits",
+      "source": "the openrouter-402-credits shape, on the image call",
+      "provider": "openrouter",
+      "status": 402,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": 402,
+          "message": "Insufficient credits. Add more using https://openrouter.ai/settings/credits",
+          "metadata": {}
+        }
+      },
+      "kind": "unavailable",
+      "reason": "credits",
+      "image": true
+    },
+    {
+      "name": "openrouter-image-403-moderation",
+      "source": "openrouter.ai/docs/api/reference/errors-and-debugging: a moderation flag is 403 with metadata reasons, flagged_input, provider_name, model_slug. Values made up.",
+      "provider": "openrouter",
+      "status": 403,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": 403,
+          "message": "Your input was flagged.",
+          "metadata": {
+            "reasons": [
+              "violence"
+            ],
+            "flagged_input": "a picture of...",
+            "provider_name": "OpenAI",
+            "model_slug": "openai/gpt-image-2.5-flare"
+          }
+        }
+      },
+      "kind": "content-policy",
+      "reason": null,
+      "image": true
+    },
+    {
+      "name": "openrouter-image-400-provider-declined",
+      "source": "openrouter.ai/docs/api/reference/errors-and-debugging: a provider's content-policy block carries metadata provider_name, provider_code and raw (the provider's payload). Values made up.",
+      "provider": "openrouter",
+      "status": 400,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": 400,
+          "message": "Provider returned error",
+          "metadata": {
+            "provider_name": "OpenAI",
+            "provider_code": "moderation_blocked",
+            "raw": "{\"error\":{\"message\":\"Your request was rejected by the safety system.\",\"type\":\"image_generation_user_error\",\"code\":\"moderation_blocked\"}}"
+          }
+        }
+      },
+      "kind": "content-policy",
+      "reason": null,
+      "image": true
+    },
+    {
+      "name": "openrouter-image-502-no-charge",
+      "source": "openrouter.ai/docs/guides/overview/multimodal/image-generation: a generation that fails to complete is 502, with no charge. Message made up.",
+      "provider": "openrouter",
+      "status": 502,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": 502,
+          "message": "Provider returned error",
+          "metadata": {
+            "provider_name": "OpenAI"
+          }
+        }
+      },
+      "kind": "transient",
+      "reason": null,
+      "image": true
     }
   ]
 }

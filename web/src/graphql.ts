@@ -14,7 +14,8 @@ export type Book = { title: string; author: string };
 export type BookInput = Book & { genre?: string; about?: string; style?: string; styleText?: string };
 /** A turn's totals over every model call. costUsd: what they cost, or null when a call came without a cost. */
 export type Usage = { inputTokens: number; outputTokens: number; costUsd?: number | null };
-export type ImageInfo = { model: string; size: string; quality: string; inputTokens: number | null; outputTokens: number | null };
+/** costUsd: the provider's own cost of this image, when it reports one. */
+export type ImageInfo = { model: string; size: string; quality: string; inputTokens: number | null; outputTokens: number | null; costUsd?: number | null };
 /**
  * The member's daily allowance in US dollars (from the gateway's headers); unlimited standalone and for the level "none".
  * level: off, light, standard, generous, custom, none; null standalone. resetsAtUtc: when it starts again.
@@ -132,7 +133,7 @@ export type Availability = { chat: boolean; chatNote: string | null; images: boo
 /** A session, plus the IMAGE_ERROR or CONCEPT_ERROR message when the turn succeeded but its painting failed. */
 export type Turn = { session: Session; imageError: GraphQLError | null };
 
-const imageFields = "image { model size quality inputTokens outputTokens }";
+const imageFields = "image { model size quality inputTokens outputTokens costUsd }";
 const typographySettings = "font fontFamily requestedFont substituted titleSize titlePlace align titleCaps authorPlace authorSize color scrim legibility { title author changed }";
 const typographyFields = `typography { ${typographySettings} }`;
 const budgetFields = "budget { level dailyUsd remainingUsd unlimited resetsAtUtc }";

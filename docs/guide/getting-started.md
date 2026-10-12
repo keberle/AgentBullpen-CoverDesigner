@@ -18,7 +18,7 @@ Copy the `Llm` block from `src/CoverDesigner.AppHost/appsettings.json` into a ne
 aspire secret set Parameters:llm-api-key <your key>
 ```
 
-Paintings need an OpenAI key too: the `Llm:Image` block and `Parameters:image-api-key`. Without a chat model the app runs and says so; without images the designer still talks. Every setting: [Configuration](configuration.md).
+Paintings need an image model too, on OpenAI or OpenRouter: the `Llm:Image` block and `Parameters:image-api-key`. Without a chat model the app runs and says so; without images the designer still talks. Every setting: [Configuration](configuration.md).
 
 ## Run it
 

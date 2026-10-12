@@ -24,7 +24,7 @@ Both empty is standalone.
 | `GATEWAY_LLM_BASE_URL` | `https://api.agentbullpen.ai/llm` |
 | `GATEWAY_CHAT_MODEL` | `openai:gpt-4o-mini` (`provider:model`) |
 | `GATEWAY_CONCEPT_MODEL` | `openai:gpt-6-luna` |
-| `GATEWAY_IMAGE_MODEL` | `openai:gpt-image-2.5-flare` |
+| `GATEWAY_IMAGE_MODEL` | `openrouter:openai/gpt-image-2.5-flare` |
 | `VITE_SITE_URL` (`Web:SiteUrl`) | the site: sign-in, the wordmark's link, the user menu |
 
 The API refuses to start when the key is still a `<placeholder>`, or empty while any other `GATEWAY_*` setting is set. `IMAGE_SIZE`, `IMAGE_QUALITY` and the timeouts still apply; the `LLM_*` and `IMAGE_*` keys are not used.
@@ -32,7 +32,7 @@ The API refuses to start when the key is still a `<placeholder>`, or empty while
 ## What changes
 
 - **Sign-in:** nothing renders until the site confirms a member; anyone else goes to its sign-in page. A session belongs to its member.
-- **Model calls:** each keeps the provider's own path with the host replaced by `{GATEWAY_LLM_BASE_URL}/{provider}`, the request's token as the key and `X-Conversation-Id: <session>`.
+- **Model calls:** each keeps the provider's own path with the host replaced by `{GATEWAY_LLM_BASE_URL}/{provider}`, the request's token as the key and `X-Conversation-Id: <session>`. The image model's provider picks its protocol: `openrouter:` posts to `/llm/openrouter/v1/images`, `openai:` and `azure:` use OpenAI's Images API.
 - **Allowance:** a daily amount in dollars under the input, and each turn's cost in its Details line.
 - **Model picker:** in the chat header when the site lists more than one chat model; switching keeps the session and its versions.
 

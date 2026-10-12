@@ -19,6 +19,7 @@ os.environ.update({
     "GATEWAY_LLM_BASE_URL": BASE,
     "GATEWAY_ISSUER": "",  # empty = the default issuer
     "GATEWAY_AUDIENCE": "",  # empty = covers
+    "GATEWAY_IMAGE_MODEL": "openai:gpt-image-2.5-flare",  # OpenAI's Images API here; OpenRouter's: test_openrouter_images.py
 })
 for name in ("LLM_TYPE", "LLM_MODEL", "LLM_API_KEY", "LLM_ENDPOINT", "IMAGE_TYPE", "IMAGE_MODEL", "IMAGE_API_KEY", "IMAGE_ENDPOINT"):
     os.environ.pop(name, None)
@@ -103,6 +104,9 @@ class FakeProxy:
         self.font_args: dict = {"font": "playfair"}  # what the designer passes to set_typography
         self.font_calls = 1  # how many times in a turn it calls set_typography before it answers
         self.plate: bytes | None = None  # the PNG the image call paints; None = a tiny flat one
+        # OpenRouter's images answer (POST …/images): the plate's media type (None = left out) and its usage (None = left out).
+        self.media_type: str | None = "image/png"
+        self.image_usage: dict | None = {"prompt_tokens": 12, "completion_tokens": 4175, "total_tokens": 4187, "cost": 0.04}
 
     def intent_for(self, request: httpx.Request) -> str:
         if self.intent:
@@ -115,7 +119,7 @@ class FakeProxy:
         path = request.url.path
         if path.endswith("/models"):
             return "models"
-        if path.endswith("/images/generations"):
+        if path.endswith(("/images/generations", "/images")):
             return "image"
         body = json.loads(request.content or b"{}")
         said = json.dumps(body.get("messages"))
@@ -142,6 +146,14 @@ class FakeProxy:
         extra = self.headers.get(kind, {})
         if kind == "models":
             return httpx.Response(200, json=self.models)
+        if kind == "image" and request.url.path.endswith("/images"):
+            item = {"b64_json": base64.b64encode(self.plate).decode() if self.plate else png_b64()}
+            if self.media_type:
+                item["media_type"] = self.media_type
+            answer = {"created": 0, "data": [item]}
+            if self.image_usage is not None:
+                answer["usage"] = self.image_usage
+            return httpx.Response(200, json=answer, headers=extra)
         if kind == "image":
             return httpx.Response(200, json={"created": 0, "data": [{"b64_json": base64.b64encode(self.plate).decode() if self.plate else png_b64()}], "usage": {"input_tokens": 30, "output_tokens": 40, "total_tokens": 70}}, headers=extra)
         if kind in ("anthropic", "anthropic-intent"):

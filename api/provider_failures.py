@@ -8,7 +8,7 @@
 #        limits → quota). A wait over 60 s → quota. Any other 429 → rate-limited with the provider's wait.
 #   401, and 403 except OpenRouter's (its moderation) → auth.
 #   5xx and Anthropic's 529 → transient. Any other 4xx → rejected; on the image call OpenAI's moderation_blocked →
-#   content policy.
+#   content policy, and so are OpenRouter's 403 with the flagged reasons and its wrapped provider refusal.
 import json
 import re
 from dataclasses import dataclass
@@ -45,6 +45,8 @@ def provider_of(llm_type: str, endpoint: str) -> str:
     host = (endpoint or "").lower()
     if llm_type.lower() == "anthropic":
         return "anthropic"
+    if llm_type.lower() == "openrouter":
+        return "openrouter"
     if not host:
         return "openai"
     if "openrouter.ai" in host:
@@ -114,6 +116,16 @@ def retry_after_seconds(headers, message: str | None) -> int | None:
     return None
 
 
+def _openrouter_declined(status: int, metadata: dict) -> bool:
+    """OpenRouter's own moderation (403 with metadata.reasons), or the provider's refusal passed on in
+    metadata.provider_code / metadata.raw (openrouter.ai/docs/api/reference/errors-and-debugging)."""
+    if status == 403 and metadata.get("reasons"):
+        return True
+    raw = metadata.get("raw")
+    raw = raw if isinstance(raw, str) else json.dumps(raw) if raw is not None else ""
+    return _str(metadata.get("provider_code")) in MODERATION_CODES or any(c in raw for c in MODERATION_CODES)
+
+
 def classify(provider: str, status: int, headers, body: bytes, image: bool = False) -> Failure:
     e = _error(body)
     message, code, kind = _str(e.get("message")), _str(e.get("code")), _str(e.get("type"))
@@ -145,6 +157,8 @@ def classify(provider: str, status: int, headers, body: bytes, image: bool = Fal
         return Failure(TRANSIENT, status)
 
     if image and (code in MODERATION_CODES or kind == "image_generation_user_error"):
+        return Failure(CONTENT_POLICY, status)
+    if image and provider == "openrouter" and _openrouter_declined(status, metadata):
         return Failure(CONTENT_POLICY, status)
 
     return Failure(REJECTED, status if 400 <= status < 500 else 502)

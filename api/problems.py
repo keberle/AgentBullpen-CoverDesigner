@@ -164,10 +164,11 @@ def from_proxy(status: int, body: bytes, image: bool = False) -> Problem:
     ext = {k: data[k] for k in PASSED_EXTENSIONS if data.get(k) is not None}
     if isinstance(kind, str) and kind.startswith(BASE):
         slug = kind[len(BASE):]
-        if slug == "upstream-rejected" and image and status == 400:
-            # The proxy doesn't pass the provider's body (it can name the account), so an OpenAI moderation refusal
-            # (400 moderation_blocked) arrives as upstream-rejected 400. This demo's image request is fixed (model,
-            # size, quality from config), so a 400 on it is taken as the content policy. [assumption]
+        if slug == "upstream-rejected" and image and status in (400, 403):
+            # The proxy doesn't pass the provider's body (it can name the account), so a moderation refusal (OpenAI's
+            # 400 moderation_blocked, OpenRouter's 403) arrives as upstream-rejected. This demo's image request is
+            # fixed (model, shape, quality from config), so a 400 or 403 on it is taken as the content policy.
+            # [assumption]
             return make("content-policy", "The image service declined that picture.", via="upstream-rejected")
         if slug == "budget-exhausted":
             ext.setdefault("resetsAtUtc", next_utc_midnight())

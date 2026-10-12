@@ -44,7 +44,7 @@
 <text x="630.0" y="301" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="middle">(appended by code)</text>
 <line x1="480" y1="261" x2="518" y2="261" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" marker-end="url(#a)"/>
 <rect x="780" y="198" width="200" height="126" rx="8" fill="#0A0A0A" stroke="rgba(255,255,255,0.45)" stroke-width="1.2"/>
-<text x="880.0" y="222" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="700">Images API</text>
+<text x="880.0" y="222" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="700">the image model</text>
 <text x="880.0" y="241" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="middle">gpt-image · 1024×1536</text>
 <text x="880.0" y="256" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="middle">medium quality</text>
 <text x="880.0" y="271" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="middle">a textless plate</text>

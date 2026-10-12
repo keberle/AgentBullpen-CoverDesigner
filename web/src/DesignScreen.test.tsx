@@ -330,6 +330,14 @@ describe("The cost at the end of a turn's Details line", () => {
     expect(p.summaries()).toEqual(["Version 1 · Details · 1 image · 1,980 tokens"]);
     expect(p.container.textContent).not.toMatch(/\$|cost/i);
   });
+
+  it("an image that came with its own cost shows it on the Image line", async () => {
+    const priced = { ...image, model: "openai/gpt-image-2.5-flare", costUsd: 0.04 };
+    const painted = session({ versions: [version(1)], messages: [answer("Painted.", { version: 1, image: priced, usage: { inputTokens: 1500, outputTokens: 200, costUsd: 0.0416 } })] });
+    const p = await open({ gateway: true, session: painted });
+    expect(p.container.textContent).toContain("Image: 1 · 1024×1536 · medium · openai/gpt-image-2.5-flare · $0.0400");
+    expect(p.container.textContent).toContain("Cost: $0.0416 (chat, concepts and the image)");
+  });
 });
 
 describe("Standalone", () => {

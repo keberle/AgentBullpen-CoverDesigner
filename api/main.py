@@ -101,6 +101,7 @@ class ImageInfo:
     quality: str
     input_tokens: int | None
     output_tokens: int | None
+    cost_usd: float | None = None  # the provider's own cost of this image, when it reports one
 
 
 @strawberry.type

@@ -25,7 +25,7 @@
 <text x="366" y="176" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#FFFFFF" text-anchor="start">concepts.py</text>
 <text x="530" y="176" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="start">the concept call</text>
 <text x="366" y="200" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#FFFFFF" text-anchor="start">images.py</text>
-<text x="530" y="200" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="start">the Images API call</text>
+<text x="530" y="200" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="start">the image model call</text>
 <text x="366" y="224" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#FFFFFF" text-anchor="start">typography.py</text>
 <text x="530" y="224" font-family="'Open Sans', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.6)" text-anchor="start">the PNG (Pillow)</text>
 <text x="366" y="248" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#FFFFFF" text-anchor="start">legibility.py</text>

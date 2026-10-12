@@ -217,6 +217,7 @@ function Bubble({
               </li>
               <li>
                 Image: 1 · {img.size.replace("x", "×")} · {img.quality} · {img.model}
+                {img.costUsd != null ? ` · ${costText(img.costUsd)}` : ""}
               </li>
               {/* A paint whose inherited type read badly on the new plate: what the check changed. */}
               {m.typography?.legibility && <li>{legibilityLine(m.typography.legibility)}</li>}

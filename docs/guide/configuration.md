@@ -24,15 +24,15 @@ From the `Llm` block of `appsettings.Development.json`. Every `OpenAI`-type prov
 
 | Variable | Meaning |
 |---|---|
-| `IMAGE_TYPE` | `OpenAI` (the only image provider in this build) |
-| `IMAGE_MODEL` | e.g. `gpt-image-2.5-flare` |
-| `IMAGE_ENDPOINT` | optional: empty = api.openai.com |
+| `IMAGE_TYPE` | `OpenAI` or `OpenRouter` |
+| `IMAGE_MODEL` | e.g. `gpt-image-2.5-flare`; on OpenRouter `openai/gpt-image-2.5-flare` |
+| `IMAGE_ENDPOINT` | optional: empty = api.openai.com for `OpenAI`, `https://openrouter.ai/api/v1/` for `OpenRouter` |
 | `IMAGE_API_KEY` | secret: `aspire secret set Parameters:image-api-key <key>` |
-| `IMAGE_SIZE` | default `1024x1536` (portrait, about 2:3) |
+| `IMAGE_SIZE` | default `1024x1536` (portrait, 2:3). OpenRouter gets the shape (`2:3`) and picks the pixels |
 | `IMAGE_QUALITY` | default `medium` |
 | `IMAGE_TIMEOUT_SECONDS` | default 120 |
 
-From the `Llm:Image` block.
+From the `Llm:Image` block. `OpenRouter` posts to its images API (`…/images`) and reports each image's cost.
 
 ## Check
 

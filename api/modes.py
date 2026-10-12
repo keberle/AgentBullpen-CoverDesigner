@@ -177,7 +177,7 @@ class GatewaySettings:
             llm_base_url=_setting("GATEWAY_LLM_BASE_URL", "https://api.agentbullpen.ai/llm").rstrip("/"),
             chat_model=_setting("GATEWAY_CHAT_MODEL", "openai:gpt-4o-mini"),
             concept_model=_setting("GATEWAY_CONCEPT_MODEL", "openai:gpt-6-luna"),
-            image_model=_setting("GATEWAY_IMAGE_MODEL", "openai:gpt-image-2.5-flare"),
+            image_model=_setting("GATEWAY_IMAGE_MODEL", "openrouter:openai/gpt-image-2.5-flare"),
         )
 
     @property
@@ -281,9 +281,12 @@ class CallPolicy:
 
     @property
     def reads_body(self) -> bool:
-        """Standalone chat and concept answers are read for the provider's own cost. Not the image's: OpenAI's Images
-        answer has none, and it is megabytes of base64."""
-        return not self.gateway and self.kind in ("chat", "concept")
+        """Standalone answers are read for the provider's own cost: chat and concept, and OpenRouter's image (its
+        `usage.cost`). Not OpenAI's image: its answer has no cost, and it is megabytes of base64. Gateway: never, the
+        site's X-Call-Cost-Usd header carries the cost of every call, the image's too."""
+        if self.gateway:
+            return False
+        return self.kind in ("chat", "concept") or (self.kind == "image" and self.provider == "openrouter")
 
     def count_cost(self, response: httpx.Response, body: bytes | None) -> None:
         """This call's cost goes on the turn. Gateway: the site's X-Call-Cost-Usd. Standalone: the provider's own
@@ -343,7 +346,7 @@ class _AsyncPolicyTransport(httpx.AsyncBaseTransport):
 
 
 class _PolicyTransport(httpx.BaseTransport):
-    """The same for the image call, which runs the sync OpenAI SDK on a worker thread (the context is copied there)."""
+    """The same for the image call, which runs a sync client on a worker thread (the context is copied there)."""
 
     def __init__(self, policy: CallPolicy, inner: httpx.BaseTransport):
         self.policy, self.inner = policy, inner
@@ -361,7 +364,7 @@ class _PolicyTransport(httpx.BaseTransport):
                 self.policy.failed(problems.make("upstream-error"), None)
                 raise
             if response.status_code < 400:
-                self.policy.succeeded(response)
+                self.policy.succeeded(response, response.read() if self.policy.reads_body else None)
                 return response
             body = response.read()
             problem = self.policy.problem(response.status_code, response.headers, body)
@@ -632,16 +635,20 @@ class LocalModelCalls:
 
     def image_http_client(self) -> httpx.Client:
         s = self._image_settings
-        policy = CallPolicy("image", gateway=False, provider=provider_failures.provider_of(s.type, s.endpoint), key_parameter="image-api-key")
+        provider = "openrouter" if s.type == "OpenRouter" else provider_failures.provider_of(s.type, s.endpoint)
+        policy = CallPolicy("image", gateway=False, provider=provider, key_parameter="image-api-key")
         return sync_http_client(policy, self.sync_transport, timeout=s.timeout_seconds)
 
 
 class GatewayModelCalls:
-    """Gateway: every call goes to the site's proxy, {GATEWAY_LLM_BASE_URL}/{provider} + the path the SDK would use,
-    with the request's JWT as the key (async_http_client / sync_http_client). The SDK clients get max_retries=0, so
-    a refusal (the 429 included) is never retried, and the paid image call never is either."""
+    """Gateway: every call goes to the site's proxy, {GATEWAY_LLM_BASE_URL}/{provider} + the path the provider
+    would use, with the request's JWT as the key (async_http_client / sync_http_client). The SDK clients get
+    max_retries=0, so a refusal (the 429 included) is never retried, and the paid image call never is either.
+    The image model's provider picks its protocol: openrouter posts to …/openrouter/v1/images, openai and azure use
+    OpenAI's Images API."""
 
     OPENAI_COMPATIBLE = ("openai", "openrouter", "azure")
+    IMAGE_TYPES = {"openrouter": "OpenRouter", "openai": "OpenAI", "azure": "OpenAI"}
 
     def __init__(self, s: GatewaySettings, timeout_seconds: float, image_size: str, image_quality: str, image_timeout: float,
                  transport: httpx.AsyncBaseTransport | None = None, sync_transport: httpx.BaseTransport | None = None,
@@ -652,8 +659,10 @@ class GatewayModelCalls:
         self.sync_transport = sync_transport
         self._effort = concept_reasoning_effort
         provider, model = split_model(s.image_model)
+        self._image_note = None if provider in self.IMAGE_TYPES and model else (
+            f"GATEWAY_IMAGE_MODEL must be openrouter:, openai: or azure: and a model (got {s.image_model!r}).")
         self._image_settings = images.ImageSettings(
-            type="OpenAI", model=model, endpoint=self.base_url(provider), api_key=PLACEHOLDER_KEY,
+            type=self.IMAGE_TYPES.get(provider, ""), model=model, endpoint=self.base_url(provider), api_key=PLACEHOLDER_KEY,
             size=image_size, quality=image_quality, timeout_seconds=image_timeout,
         )
 
@@ -669,7 +678,7 @@ class GatewayModelCalls:
         return True, None  # whether the site lists a chat model is the catalog's call (main.py availability)
 
     def images_available(self):
-        return True, None
+        return self._image_note is None, self._image_note
 
     def chat_client(self, model_id: str, kind: str = "chat"):
         provider, model = split_model(model_id)
