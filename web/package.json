@@ -1,0 +1,56 @@
+{
+  "name": "cover-designer-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.74.9",
+    "@fontsource-variable/cinzel": "^5.3.0",
+    "@fontsource-variable/cormorant-garamond": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/montserrat": "^5.3.0",
+    "@fontsource-variable/open-sans": "^5.3.0",
+    "@fontsource-variable/orbitron": "^5.3.0",
+    "@fontsource-variable/oswald": "^5.3.0",
+    "@fontsource-variable/playfair-display": "^5.3.0",
+    "@fontsource/alfa-slab-one": "^5.3.0",
+    "@fontsource/anton": "^5.3.0",
+    "@fontsource/bangers": "^5.3.0",
+    "@fontsource/bebas-neue": "^5.3.0",
+    "@fontsource/comic-neue": "^5.3.0",
+    "@fontsource/courier-prime": "^5.3.0",
+    "@fontsource/creepster": "^5.3.0",
+    "@fontsource/great-vibes": "^5.3.0",
+    "@fontsource/rye": "^5.3.0",
+    "@fontsource/unifrakturmaguntia": "^5.3.0",
+    "@mdx-js/react": "3.1.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "8.4.0"
+  },
+  "devDependencies": {
+    "@mdx-js/rollup": "3.1.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/mdx": "2.0.14",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^29.1.1",
+    "rehype-slug": "6.0.0",
+    "remark-gfm": "4.0.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

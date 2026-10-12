@@ -1,0 +1,1 @@
+Style: minimal and typographic. Flat colour field or a very simple shape, little or no pictorial imagery, strong contrast, lots of empty space. The type will do the work, so the image must stay calm and leave the upper half and the foot clear.

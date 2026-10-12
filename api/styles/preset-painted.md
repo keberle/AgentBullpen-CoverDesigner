@@ -1,0 +1,1 @@
+Style: painted illustration. Visible brushwork, warm directional light, soft storybook atmosphere, gentle colour harmony. One clear subject with a simple background that leaves room for the title at the top and the author at the foot.

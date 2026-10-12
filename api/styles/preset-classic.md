@@ -1,0 +1,1 @@
+Style: a classic paperback cover. Restrained palette of two or three colours, one strong central image, generous quiet space where the title will sit large at the top and the author small at the foot. Mood set by light, not by clutter. Finish: clean, slightly textured, timeless.

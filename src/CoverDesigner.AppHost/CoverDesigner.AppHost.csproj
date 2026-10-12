@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAspireHost>true</IsAspireHost>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+    <!-- Holds the optional llm-api-key parameter (README › Configure a model provider). -->
+    <UserSecretsId>coverdesigner-apphost</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.6.0" />
+    <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.6.0" />
+    <PackageReference Include="Aspire.Hosting.Python" Version="13.6.0" />
+  </ItemGroup>
+
+</Project>

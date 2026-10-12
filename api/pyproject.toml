@@ -1,0 +1,27 @@
+[project]
+name = "cover-designer-api"
+version = "0.1.0"
+description = "Cover Designer GraphQL API"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.142.2",
+    "strawberry-graphql[opentelemetry]>=0.332.0",
+    "opentelemetry-distro>=0.66b1",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.45.1",
+    "opentelemetry-instrumentation-fastapi>=0.66b1",
+    "agent-framework-core>=1.21.0",
+    "agent-framework-openai>=1.16.0",
+    "agent-framework-anthropic>=1.0.0b261008",
+    "pillow>=12",
+    "pyjwt>=2.10",
+    "httpx2>=2.13",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

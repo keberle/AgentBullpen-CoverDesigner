@@ -1,0 +1,1 @@
+Style: a 3D-animated-film look. Expressive characters with big readable faces, bright saturated colour, soft global lighting, clean rendered surfaces. Keep the upper and lower edges simple so the title and author stay legible.

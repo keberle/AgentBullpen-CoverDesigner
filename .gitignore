@@ -1,0 +1,70 @@
+# ---- Local secrets & dev config (NEVER commit) ----
+**/appsettings.Development.json
+**/appsettings.*.Local.json
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.*
+**/secrets.json
+*.pem
+*.pfx
+*.key
+.azure/
+
+# ---- Node ----
+node_modules/
+**/dist/
+*.log
+.vite/
+*.tsbuildinfo
+
+# ---- .NET build output ----
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.binlog
+artifacts/
+
+# ---- Aspire ----
+.aspire/
+
+# ---- IDE / editor ----
+.vs/
+.idea/
+*.swp
+*~
+
+# ---- Python ----
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# ---- Private working notes (handoffs, reports, screens) ----
+/.archive/
+/docs/handoff/
+
+# ---- Test and check output (Playwright, coverage, screenshots) ----
+TestResults/
+test-results/
+playwright-report/
+blob-report/
+coverage/
+*.trx
+/screens/
+/screenshots/
+.vitest/
+
+# ---- Agent and tool state ----
+.claude/
+.cursor/
+.codex/
+.aider*
+.vscode/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini

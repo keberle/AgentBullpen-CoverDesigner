@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/CoverDesigner.AppHost/CoverDesigner.AppHost.csproj"
+  }
+}

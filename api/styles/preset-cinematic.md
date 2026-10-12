@@ -1,0 +1,1 @@
+Style: cinematic and photoreal. Dramatic lighting, shallow depth of field, movie-poster framing with the subject in the middle third; dark quiet regions at the top and bottom where the title and author will sit.
