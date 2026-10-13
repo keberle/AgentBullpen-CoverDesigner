@@ -29,6 +29,8 @@ Behind the site, its LLM proxy classifies the provider's failure, fails over whe
 
 A book that won't open shows the same reasons on the pick screen, with Try again.
 
+Deployed, the API sleeps when nobody is using it, so the first load after a quiet spell waits for it to start, and the pick screen says so.
+
 ## Paid calls
 
 An image is never sent twice after an error or a timeout: it may already be billed, so the author decides with Retry paint. Only a rate limit, refused before anything is generated, is retried once, after at most 30 seconds.

@@ -70,7 +70,9 @@ describe("An admin sees what the public sees", () => {
     expect(member.page).toContain("Other demos");
     expect(admin.menu).toBe(member.menu);
     for (const html of [member.page, admin.page]) {
-      expect(html).not.toMatch(/Preview|for everyone else|role="status"|\((soon|paused|hidden)\)|Admin/);
+      expect(html).not.toMatch(/Preview|for everyone else|\((soon|paused|hidden)\)|Admin/);
+      // The one status is the book list's own, while it loads: no banner about the demo.
+      expect(html.match(/role="status"[^>]*>(?:<[^>]*>)*[^<]*/g)?.map((s) => s.replace(/.*>/, ""))).toEqual(["Starting the cover designer…"]);
     }
     // "Other demos" is the live list for both.
     expect(admin.state.otherDemos.map((a) => a.name)).toEqual(["Temporal Graph"]);

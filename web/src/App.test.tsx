@@ -29,6 +29,15 @@ const plenty: Budget = { level: "standard", dailyUsd: 1, remainingUsd: 0.98, unl
 type Answer = { session: string } | { problem: Partial<Problem> & { slug: string }; code?: string } | { status: number };
 const failing = (slug: string, extra: Partial<Problem> = {}): Answer => ({ problem: { slug, ...extra } });
 
+/** The book list's answer: the list, a failed fetch, an HTTP status with no body, or a body with its status. */
+type BooksAnswer = "books" | "network" | { status: number } | { body: unknown; http: number };
+
+/** As fetch does: the answer, or the signal's reason when the call is aborted first. */
+function untilAborted<T>(answer: Promise<T>, signal?: AbortSignal | null): Promise<T> {
+  if (!signal) return answer;
+  return Promise.race([answer, new Promise<never>((_, reject) => signal.addEventListener("abort", () => reject(signal.reason)))]);
+}
+
 function later<T>() {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((r) => (resolve = r));
@@ -44,6 +53,8 @@ async function mount(opts: {
   me?: unknown | Promise<unknown>;
   budget?: Budget | null | (() => Budget | null);
   starts?: (Answer | Promise<Answer>)[];
+  /** The book list's answers, in order; after them (and by default) the list at once. */
+  books?: (BooksAnswer | Promise<BooksAnswer>)[];
 }) {
   vi.resetModules();
   if (opts.gateway) {
@@ -57,6 +68,7 @@ async function mount(opts: {
   const started: BookInput[] = [];
   const redirects: string[] = [];
   const queue = [...(opts.starts ?? [])];
+  const bookAnswers = [...(opts.books ?? [])];
   const graphql = async (init?: RequestInit): Promise<Response> => {
     const { query, variables } = JSON.parse(String(init?.body)) as { query: string; variables: { book?: BookInput } };
     if (query.includes("startSession")) {
@@ -72,7 +84,11 @@ async function mount(opts: {
     }
     if (query.includes("books")) {
       calls.push("books");
-      return json({ data: { books } });
+      const answer = await untilAborted(Promise.resolve(bookAnswers.shift() ?? "books"), init?.signal);
+      if (answer === "books") return json({ data: { books } });
+      if (answer === "network") throw new TypeError("Failed to fetch");
+      if ("status" in answer) return new Response("", { status: answer.status });
+      return json(answer.body, answer.http);
     }
     if (query.trim().startsWith("{ budget")) {
       calls.push("budget");
@@ -144,6 +160,7 @@ afterEach(async () => {
   page = null;
   document.body.innerHTML = "";
   vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.doUnmock("./DesignScreen.tsx");
@@ -195,6 +212,100 @@ describe("Behind the site the app is for signed-in members only", () => {
     expect(p.header().lastElementChild!.getAttribute("aria-label")).toBe("User menu for Kim Evans");
     expect(p.button("Change book")).toBeUndefined();
     expect(p.header().textContent).not.toContain("·");
+  });
+});
+
+describe("The pick screen while the api starts", () => {
+  const starting = "Starting the cover designer…";
+  const sleeps = "It sleeps when nobody is using it. The first visit after a quiet spell takes up to a minute.";
+  const didntStart = "The cover designer didn't start. Try again in a moment.";
+  const titles = [...books.map((b) => b.title), "Your own book idea"];
+
+  /** Fake timers, with AbortSignal.timeout on the same clock. */
+  const fakeClock = () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    return vi.spyOn(AbortSignal, "timeout").mockImplementation((ms) => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(new DOMException("The operation timed out.", "TimeoutError")), ms);
+      return controller.signal;
+    });
+  };
+  const skeletons = (p: Mounted) => p.all('main div.grid > [aria-hidden="true"]');
+  const cards = (p: Mounted) => p.all("main div.grid > button").map((b) => b.firstElementChild!.nextElementSibling!.firstElementChild!.textContent);
+
+  it("until the books are here: the status line and four skeleton cards, and no own-idea card; the second line after 10 s; then all four cards together", async () => {
+    fakeClock();
+    const answer = later<BooksAnswer>();
+    const p = await open({ gateway: false, books: [answer.promise] });
+    expect(p.statuses()).toEqual([starting]);
+    const status = p.container.querySelector('[role="status"]')!;
+    expect(status.getAttribute("aria-live")).toBe("polite");
+    expect(skeletons(p)).toHaveLength(4);
+    expect(p.all("main button")).toEqual([]);
+    expect(p.container.textContent).not.toContain("Your own book idea");
+    expect(p.alert()).toBeNull();
+    await p.settle(9_999);
+    expect(p.statuses()).toEqual([starting]);
+    await p.settle(1);
+    expect(p.statuses()).toEqual([starting + sleeps]);
+    expect(skeletons(p)).toHaveLength(4);
+    expect(p.all("main button")).toEqual([]);
+    answer.resolve("books");
+    await p.settle();
+    expect(cards(p)).toEqual(titles);
+    expect(skeletons(p)).toEqual([]);
+    expect(p.statuses()).toEqual([]);
+    expect(p.alert()).toBeNull();
+  });
+
+  it.each<[string, BooksAnswer]>([
+    ["the call failed", "network"],
+    ["an answer without the list", { status: 502 }],
+  ])("%s: the alert with Try again and no cards; Try again goes back to loading and asks again", async (_, failed) => {
+    fakeClock();
+    const second = later<BooksAnswer>();
+    const p = await open({ gateway: false, books: [failed, second.promise] });
+    expect(p.alert()).toBe(didntStart);
+    expect(p.statuses()).toEqual([]);
+    expect(p.container.querySelector("main div.grid")).toBeNull();
+    expect(p.all("main button").map((b) => b.textContent)).toEqual(["Try again"]);
+    await p.click(p.button("Try again")!);
+    expect(p.alert()).toBeNull();
+    expect(p.statuses()).toEqual([starting]);
+    expect(skeletons(p)).toHaveLength(4);
+    expect(p.calls).toEqual(["books", "books"]);
+    second.resolve("books");
+    await p.settle();
+    expect(cards(p)).toEqual(titles);
+  });
+
+  it("no answer in 150 s: the call is given up and the alert shows, not an empty list; Try again asks again", async () => {
+    const timeout = fakeClock();
+    const p = await open({ gateway: true, books: [later<BooksAnswer>().promise] });
+    expect(timeout.mock.calls).toEqual([[150_000]]);   // the book list only: the budget read has no timeout
+    await p.settle(149_999);
+    expect(p.statuses()).toEqual([starting + sleeps]);
+    expect(p.alert()).toBeNull();
+    await p.settle(1);
+    expect(p.alert()).toBe(didntStart);
+    expect(p.statuses()).toEqual([]);
+    expect(p.container.querySelector("main div.grid")).toBeNull();
+    await p.click(p.button("Try again")!);
+    await p.settle();
+    expect(p.alert()).toBeNull();
+    expect(cards(p)).toEqual(titles);
+    expect(p.calls.filter((c) => c === "books")).toHaveLength(2);
+    expect(p.redirects).toEqual([]);
+  });
+
+  it("a 401 still goes to the sign-in page, and a demo that isn't open to the under-construction page: no alert", async () => {
+    let p = await open({ gateway: true, books: [{ status: 401 }] });
+    expect(p.redirects).toEqual([`${site}/signin?returnUrl=${encodeURIComponent(window.location.href)}`]);
+    expect(p.alert()).toBeNull();
+    await p.unmount();
+    p = await open({ gateway: true, books: [{ body: { type: `${problems}app-unavailable`, status: 503 }, http: 503 }] });
+    expect(p.redirects).toEqual([`${site}/under-construction?app=covers`]);
+    expect(p.alert()).toBeNull();
   });
 });
 

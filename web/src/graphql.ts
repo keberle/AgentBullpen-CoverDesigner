@@ -213,23 +213,28 @@ function csrf(refresh = false): Promise<string> {
   return csrfToken;
 }
 
-async function post(body: string, refreshCsrf = false): Promise<Response> {
-  if (!gatewayMode) return fetch("/graphql", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+async function post(body: string, refreshCsrf = false, signal?: AbortSignal): Promise<Response> {
+  if (!gatewayMode) return fetch("/graphql", { method: "POST", headers: { "Content-Type": "application/json" }, body, signal });
   return fetch(graphqlUrl(), {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": await csrf(refreshCsrf) },
     body,
+    signal,
   });
 }
 
-async function request<T>(query: string, variables: Record<string, unknown> = {}): Promise<{ data: T; errors: GraphQLError[] }> {
+/** `timeoutMs`, when given, aborts the call after that long (the fetch rejects with a TimeoutError); absent = no limit. */
+async function request<T>(query: string, variables: Record<string, unknown> = {}, timeoutMs?: number): Promise<{ data: T; errors: GraphQLError[] }> {
   const payload = JSON.stringify({ query, variables });
-  let r = await post(payload);
+  const signal = timeoutMs === undefined ? undefined : AbortSignal.timeout(timeoutMs);
+  let r = await post(payload, false, signal);
   // The gateway rejects a stale antiforgery token with 400: fetch a new one once.
-  if (gatewayMode && r.status === 400) r = await post(payload, true);
+  if (gatewayMode && r.status === 400) r = await post(payload, true, signal);
   if (r.status === 401) throw signedOut();
   const body = (await r.json().catch(() => ({}))) as Body<T>;
+  // A timeout while the body was on its way is still a timeout.
+  signal?.throwIfAborted();
   // The site's gateway answers a demo that isn't open with the app-unavailable problem (503, problem+json) before it reaches
   // the api; the api passes the same problem on from a model call. Either way: to the under-construction page.
   const unavailable = isAppUnavailable(body as Problem) ? (body as Problem) : body.errors?.map((e) => e.extensions?.problem).find(isAppUnavailable);
@@ -246,9 +251,13 @@ function turn(session: Session, errors: GraphQLError[]): Turn {
   return { session, imageError: errors[0] ?? null };
 }
 
-/** The book list (pick screen). */
+/** How long the book list waits: deployed, the api may be starting from nothing. Under the site gateway's own timeout. */
+export const booksTimeoutMs = 150_000;
+
+/** The book list (pick screen). The first call of a visit, so the one that waits for a sleeping api; it gives up after
+ * booksTimeoutMs. */
 export async function books(): Promise<Book[]> {
-  return (await request<{ books: Book[] }>("{ books { title author } }")).data.books;
+  return (await request<{ books: Book[] }>("{ books { title author } }", {}, booksTimeoutMs)).data.books;
 }
 
 /** The models to pick from and the budget. */

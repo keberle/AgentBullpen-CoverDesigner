@@ -5,6 +5,21 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "./design-kit/tokens.css";
 
+/* The pick screen while the api starts: the status line's spinner and the skeleton cards (animate-wait-spin,
+   animate-wait-pulse; both off under prefers-reduced-motion, where they are used). */
+@theme {
+  --animate-wait-spin: wait-spin 0.9s linear infinite;
+  --animate-wait-pulse: wait-pulse 1.6s ease-in-out infinite;
+
+  @keyframes wait-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes wait-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+}
+
 @layer base {
   /* Without preflight the browser's 8px body margin would show around the page. */
   html { background: var(--abp-page); }
